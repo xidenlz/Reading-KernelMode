@@ -15,3 +15,6 @@ Customize `ReadSerialNumberFromHardware` in the code for your specific hardware.
 
 ## 3. Enhancements
 Extend the provided code to meet the specific requirements of your device. This may include additional functionality, improved error handling, or other customizations.
+
+## Communicating with the Driver
+This driver is designed to communicate with user-mode programs. To interact with the driver from any user-mode program, follow the instructions in the [km-um-communication](https://github.com/adspro15/km-um-communication) repository.
