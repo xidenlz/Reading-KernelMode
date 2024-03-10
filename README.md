@@ -62,7 +62,7 @@ class Program
     static void Main()
     {
         /* Specify the path to the driver device */
-        string devicePath = @"\\.\SimpleDriver";
+        string devicePath = @"\\.\Driver.sys";
 
         /* Open a handle to the driver device */
         IntPtr deviceHandle = CreateFile(
