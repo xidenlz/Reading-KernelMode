@@ -8,7 +8,7 @@ This repository contains a basic Windows kernel-mode driver built using the Wind
 - Sample Write Operation: Handles write requests by printing received data.
 
 ## 1. Build Environment
-Set up a Windows Kernel Mode Driver development environment using [Visual Studio 2022](https://visualstudio.microsoft.com/) and download the [Windows Driver Kit (WDK)](https://docs.microsoft.com/en-us/windows/hardware/get-started/adk-install) to develop kernel drivers.
+Set up a Windows Kernel Mode Driver development environment using [Visual Studio 2022](https://visualstudio.microsoft.com/) and download the [Windows Driver Kit (WDK)](https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk) to develop kernel drivers.
 
 ## 2. Device Integration
 Customize `ReadSerialNumberFromHardware` in the code for your specific hardware. This function is responsible for reading data from the hardware device.
