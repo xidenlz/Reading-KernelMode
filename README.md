@@ -29,19 +29,10 @@ using System.Runtime.InteropServices;
 
 class Program
 {
-    // Define IOCTL codes for communication with the driver
-    private const uint FILE_DEVICE_UNKNOWN = 0x00000022;
-    private const uint METHOD_BUFFERED = 0;
-    private const uint FILE_ANY_ACCESS = 0;
-
-    // IOCTL codes for read and write operations
-    private const uint IOCTL_READ = (FILE_DEVICE_UNKNOWN << 16) | (FILE_ANY_ACCESS << 14) | (0x800 << 2) | METHOD_BUFFERED;
-    private const uint IOCTL_WRITE = (FILE_DEVICE_UNKNOWN << 16) | (FILE_ANY_ACCESS << 14) | (0x801 << 2) | METHOD_BUFFERED;
-
-    // Path to the driver device
-    private const string DevicePath = "\\\\.\\Driver.sys"; // Replace with the driver name
-
-    // Import kernel32.dll for device interaction
+    /* Define the IOCTL code for communication with the driver */
+    private const uint IOCTL_SIMPLEDRIVER_METHOD = 0x222000;
+    
+    /* Import the kernel32.dll library for device I/O operations */
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr CreateFile(
         string lpFileName,
@@ -50,11 +41,10 @@ class Program
         IntPtr lpSecurityAttributes,
         uint dwCreationDisposition,
         uint dwFlagsAndAttributes,
-        IntPtr hTemplateFile
-    );
+        IntPtr hTemplateFile);
 
+    /* Import the kernel32.dll library for sending IOCTL requests */
     [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DeviceIoControl(
         IntPtr hDevice,
         uint dwIoControlCode,
@@ -63,50 +53,63 @@ class Program
         IntPtr lpOutBuffer,
         uint nOutBufferSize,
         ref uint lpBytesReturned,
-        IntPtr lpOverlapped
-    );
+        IntPtr lpOverlapped);
 
+    /* Import the kernel32.dll library for closing the device handle */
     [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool CloseHandle(IntPtr hObject);
 
     static void Main()
     {
-        // Open a handle to the driver device
-        IntPtr deviceHandle = CreateFile(DevicePath, 0xC0000000, 0, IntPtr.Zero, 3, 0, IntPtr.Zero);
+        /* Specify the path to the driver device */
+        string devicePath = @"\\.\SimpleDriver";
 
-        if (deviceHandle == IntPtr.Zero)
+        /* Open a handle to the driver device */
+        IntPtr deviceHandle = CreateFile(
+            devicePath,
+            0xC0000000, // GENERIC_READ | GENERIC_WRITE
+            0,
+            IntPtr.Zero,
+            3, // OPEN_EXISTING
+            0,
+            IntPtr.Zero);
+
+        if (deviceHandle.ToInt32() == -1)
         {
-            Console.WriteLine("Error opening device handle. Make sure the driver is loaded.");
+            Console.WriteLine("Failed to open the device. Error code: " + Marshal.GetLastWin32Error());
             return;
         }
 
-        // Example: Reading from the driver
-        Console.WriteLine("Reading from the driver...");
+        try
+        {
+            /* Send a sample IOCTL request to the driver */
+            uint bytesReturned = 0;
+            bool success = DeviceIoControl(
+                deviceHandle,
+                IOCTL_SIMPLEDRIVER_METHOD,
+                IntPtr.Zero,
+                0,
+                IntPtr.Zero,
+                0,
+                ref bytesReturned,
+                IntPtr.Zero);
 
-        uint bytesReturned = 0;
-        IntPtr outputBuffer = Marshal.AllocHGlobal(256); // Adjust buffer size accordingly
-
-        // /* Error checking should be added in a real-world scenario */
-        DeviceIoControl(deviceHandle, IOCTL_READ, IntPtr.Zero, 0, outputBuffer, 256, ref bytesReturned, IntPtr.Zero);
-
-        string serialNumber = Marshal.PtrToStringUni(outputBuffer);
-        Console.WriteLine($"Serial Number: {serialNumber}");
-
-        // Example: Writing to the driver
-        Console.WriteLine("Writing to the driver...");
-
-        string dataToWrite = "NewData";
-        IntPtr inputBuffer = Marshal.StringToHGlobalUni(dataToWrite);
-
-        // /* Error checking should be added in a real-world scenario */
-        DeviceIoControl(deviceHandle, IOCTL_WRITE, inputBuffer, (uint)(dataToWrite.Length + 1) * 2, IntPtr.Zero, 0, ref bytesReturned, IntPtr.Zero);
-
-        // Cleanup
-        Marshal.FreeHGlobal(outputBuffer);
-        Marshal.FreeHGlobal(inputBuffer);
-        CloseHandle(deviceHandle);
+            if (success)
+            {
+                Console.WriteLine("IOCTL request sent successfully!");
+            }
+            else
+            {
+                Console.WriteLine("Failed to send IOCTL request. Error code: " + Marshal.GetLastWin32Error());
+            }
+        }
+        finally
+        {
+            /* Close the handle to the driver device */
+            CloseHandle(deviceHandle);
+        }
     }
 }
+
 
 ```
